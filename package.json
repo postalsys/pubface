@@ -1,0 +1,18 @@
+{
+    "name": "pubface",
+    "version": "1.0.0",
+    "description": "Resolve public network interfaces for current machine",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "Postal Systems OÜ",
+    "license": "MIT",
+    "bin": {
+        "pubface": "bin/pubface.js"
+    },
+    "dependencies": {
+        "nodemailer": "6.7.1"
+    }
+}
