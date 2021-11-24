@@ -4,15 +4,32 @@
     "description": "Resolve public network interfaces for current machine",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build-dist": "pkg package.json"
     },
     "keywords": [],
     "author": "Postal Systems OÜ",
     "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/postalsys/pubface/issues"
+    },
+    "homepage": "https://github.com/postalsys/pubface",
     "bin": {
         "pubface": "bin/pubface.js"
     },
     "dependencies": {
         "nodemailer": "6.7.1"
+    },
+    "devDependencies": {
+        "pkg": "5.4.1"
+    },
+    "pkg": {
+        "assets": [
+            "LICENSE.txt"
+        ],
+        "_targets": [
+            "node16-macos-x64"
+        ],
+        "outputPath": "dist"
     }
 }
