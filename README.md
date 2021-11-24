@@ -29,9 +29,9 @@ $ npm install -g pubface
 
 Or alternatively download the latest executable if you do not have Node.js or NPM installed
 
-    - [MacOS](https://github.com/postalsys/pubface/releases/latest/download/pubface.pkg)
-    - [Linux](https://github.com/postalsys/pubface/releases/latest/download/pubface.tar.gz)
-    - [Window](https://github.com/postalsys/pubface/releases/latest/download/pubface.exe)
+-   [MacOS](https://github.com/postalsys/pubface/releases/latest/download/pubface.pkg)
+-   [Linux](https://github.com/postalsys/pubface/releases/latest/download/pubface.tar.gz)
+-   [Window](https://github.com/postalsys/pubface/releases/latest/download/pubface.exe)
 
 Use it to get an array of interfaces
 
