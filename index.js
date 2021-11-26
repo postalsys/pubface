@@ -5,12 +5,36 @@ const packageData = require('./package.json');
 const dns = require('dns').promises;
 const os = require('os');
 const net = require('net');
+const ipaddr = require('ipaddr.js');
 
 const RESOLV_URL = process.env.RESOLV_URL || 'https://api.nodemailer.com/';
 const RESOLV_TIMEOUT = Number(process.env.RESOLV_TIMEOUT) || 5;
 
 const RESOLV_TIMEOUT_SEC = RESOLV_TIMEOUT * 1000;
 const DNS_CACHE = {};
+
+function getPtrAddr(address) {
+    let parsed = ipaddr.parse(address);
+    if (net.isIPv4(address)) {
+        return parsed.toByteArray().reverse().join('.') + '.in-addr.arpa.';
+    }
+    if (net.isIPv6(address)) {
+        return (
+            parsed
+                .toByteArray()
+                .map(nr => (nr < 0x0a ? '0' : '') + nr.toString(16))
+                .join('')
+                .split('')
+                .reverse()
+                .join('.') + '.ip6.arpa.'
+        );
+    }
+}
+
+async function resolvePtr(address) {
+    let ptrAddress = getPtrAddr(address);
+    return await dns.resolvePtr(ptrAddress);
+}
 
 async function updateDns() {
     let now = new Date();
@@ -136,7 +160,7 @@ async function resolveIP(localAddress, family) {
     }
 
     try {
-        let name = await dns.reverse(data.ip);
+        let name = await resolvePtr(data.ip);
         if (name && name.length) {
             data.name = name[0];
         }
