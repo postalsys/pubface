@@ -1,6 +1,6 @@
 'use strict';
 
-const fetch = require('nodemailer/lib/fetch');
+const fetchUrl = require('nodemailer/lib/fetch');
 const packageData = require('./package.json');
 const dns = require('dns').promises;
 const os = require('os');
@@ -101,9 +101,15 @@ function getPublicInterfaces() {
     let publicInterfaces = { IPv4: [], IPv6: [] };
     Object.keys(interfaces)
         .flatMap(iface => interfaces[iface].filter(entry => !entry.internal).map(entry => Object.assign({ iface }, entry)))
-        .forEach(entry => {
-            if (Array.isArray(publicInterfaces[entry.family])) {
-                publicInterfaces[entry.family].push(entry);
+        .forEach(originalEntry => {
+            let entry = Object.assign({}, originalEntry);
+
+            let family = typeof entry.family === 'number' ? `IPv${entry.family}` : entry.family;
+            if (entry.family !== family) {
+                entry.family = family;
+            }
+            if (Array.isArray(publicInterfaces[family])) {
+                publicInterfaces[family].push(entry);
             }
         });
     return publicInterfaces;
@@ -124,7 +130,7 @@ async function timedFunction(prom, timeout, localAddress) {
 
 async function resolveIP(localAddress, family) {
     let data = await new Promise((resolve, reject) => {
-        let req = fetch(RESOLV_URL, {
+        let req = fetchUrl(RESOLV_URL, {
             userAgent: `${packageData.name}/${packageData.version}`,
             tls: {
                 host: DNS_CACHE[family] && DNS_CACHE[family].host,
