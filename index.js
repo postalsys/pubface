@@ -134,6 +134,8 @@ async function resolveIP(localAddress, family) {
             userAgent: `${packageData.name}/${packageData.version}`,
             tls: {
                 host: DNS_CACHE[family] && DNS_CACHE[family].host,
+                servername: new URL(RESOLV_URL).hostname,
+                hostname: new URL(RESOLV_URL).hostname,
                 rejectUnauthorized: false,
                 localAddress
             }
