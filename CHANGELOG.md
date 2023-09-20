@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6](https://github.com/postalsys/pubface/compare/v1.0.5...v1.0.6) (2023-09-20)
+
+
+### Bug Fixes
+
+* **license:** Changed license name ([986068f](https://github.com/postalsys/pubface/commit/986068f585b6c82c3b83ed6eb9d30463dac3a730))
+
 ## [1.0.5](https://github.com/postalsys/pubface/compare/v1.0.4...v1.0.5) (2023-09-20)
 
 
