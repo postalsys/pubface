@@ -5,11 +5,14 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build-dist": "pkg package.json"
+        "build-source": "rm -rf node_modules package-lock.json && npm install && npm run licenses && rm -rf node_modules package-lock.json && npm install --production && rm -rf package-lock.json",
+        "build-dist": "npx pkg --compress Brotli package.json && rm -rf package-lock.json && npm install",
+        "build-dist-fast": "npx pkg --debug  package.json && rm -rf package-lock.json && npm install",
+        "licenses": "license-report --only=prod --output=table --config license-report-config.json > licenses.txt"
     },
     "keywords": [],
     "author": "Postal Systems OÜ",
-    "license": "MIT",
+    "license": "MIT-0",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/postalsys/pubface.git"
@@ -26,15 +29,20 @@
         "nodemailer": "6.9.5"
     },
     "devDependencies": {
-        "pkg": "5.8.1"
+        "pkg": "5.8.1",
+        "license-report": "6.4.0"
     },
     "pkg": {
         "assets": [
-            "LICENSE.txt"
+            "LICENSE.txt",
+            "licenses.txt"
         ],
-        "_targets": [
-            "node16-macos-x64"
+        "targets": [
+            "node18-linux-x64",
+            "node18-macos-x64",
+            "node18-macos-arm64",
+            "node18-win-x64"
         ],
-        "outputPath": "dist"
+        "outputPath": "ee-dist"
     }
 }

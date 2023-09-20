@@ -69,4 +69,4 @@ Output is an array of interfaces:
 
 ## License
 
-**MIT**
+Pubface is licensed under the **MIT No Attribution license**
