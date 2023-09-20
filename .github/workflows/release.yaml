@@ -17,6 +17,7 @@ jobs:
               id: release
               with:
                   release-type: node
+                  prerelease: true
                   package-name: ${{env.PACKAGE_NAME}}
                   pull-request-title-pattern: 'chore${scope}: release ${version} [skip-ci]'
             # The logic below handles the npm publication:
