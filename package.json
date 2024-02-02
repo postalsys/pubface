@@ -8,7 +8,8 @@
         "build-source": "rm -rf node_modules package-lock.json && npm install && npm run licenses && rm -rf node_modules package-lock.json && npm install --production && rm -rf package-lock.json",
         "build-dist": "npx pkg --compress Brotli package.json && rm -rf package-lock.json && npm install",
         "build-dist-fast": "npx pkg --debug  package.json && rm -rf package-lock.json && npm install",
-        "licenses": "license-report --only=prod --output=table --config license-report-config.json > licenses.txt"
+        "licenses": "license-report --only=prod --output=table --config license-report-config.json > licenses.txt",
+        "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
     },
     "keywords": [],
     "author": "Postal Systems OÜ",
@@ -26,11 +27,11 @@
     },
     "dependencies": {
         "ipaddr.js": "2.1.0",
-        "nodemailer": "6.9.5"
+        "nodemailer": "6.9.9"
     },
     "devDependencies": {
         "pkg": "5.8.1",
-        "license-report": "6.4.0"
+        "license-report": "6.5.0"
     },
     "pkg": {
         "assets": [
