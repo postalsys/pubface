@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.7](https://github.com/postalsys/pubface/compare/v1.0.6...v1.0.7) (2024-02-02)
+
+
+### Bug Fixes
+
+* **deps:** Bumped nodemailer ([0410b96](https://github.com/postalsys/pubface/commit/0410b9606d2af8c1bb4cffb9428ab1ce8ad65ade))
+
 ## [1.0.6](https://github.com/postalsys/pubface/compare/v1.0.5...v1.0.6) (2023-09-20)
 
 
