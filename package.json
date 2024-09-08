@@ -1,6 +1,6 @@
 {
     "name": "pubface",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "description": "Resolve public network interfaces for current machine",
     "main": "index.js",
     "scripts": {
