@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.14](https://github.com/postalsys/pubface/compare/v1.0.13...v1.0.14) (2025-10-09)
+
+
+### Bug Fixes
+
+* bumped deps ([9548890](https://github.com/postalsys/pubface/commit/954889047a941b705c354d8e1dfcbc1688b178a2))
+
 ## [1.0.13](https://github.com/postalsys/pubface/compare/v1.0.12...v1.0.13) (2025-05-20)
 
 
