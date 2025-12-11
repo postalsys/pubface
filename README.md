@@ -29,9 +29,9 @@ $ npm install -g pubface
 
 Or alternatively download the latest executable if you do not have Node.js or NPM installed
 
--   [MacOS](https://github.com/postalsys/pubface/releases/latest/download/pubface.pkg)
--   [Linux](https://github.com/postalsys/pubface/releases/latest/download/pubface.tar.gz)
--   [Window](https://github.com/postalsys/pubface/releases/latest/download/pubface.exe)
+- [MacOS](https://github.com/postalsys/pubface/releases/latest/download/pubface.pkg)
+- [Linux](https://github.com/postalsys/pubface/releases/latest/download/pubface.tar.gz)
+- [Window](https://github.com/postalsys/pubface/releases/latest/download/pubface.exe)
 
 Use it to get an array of interfaces
 
@@ -61,11 +61,11 @@ Output is an array of interfaces:
 ]
 ```
 
--   **localAddress** is the local IP address
--   **ip** is the public IP address that servers see as your IP address when you make a connection
--   **name** is the reverse record for **ip**
--   **family** is either _IPv4_ or _IPv6_ depending on the **ip**
--   **defaultInterface** is a boolean that indicates if this is the default interface used when making connections and not specifying a local address
+- **localAddress** is the local IP address
+- **ip** is the public IP address that servers see as your IP address when you make a connection
+- **name** is the reverse record for **ip**
+- **family** is either _IPv4_ or _IPv6_ depending on the **ip**
+- **defaultInterface** is a boolean that indicates if this is the default interface used when making connections and not specifying a local address
 
 ## License
 

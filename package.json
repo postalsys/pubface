@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write .",
         "build-source": "rm -rf node_modules package-lock.json && npm install && npm run licenses && rm -rf node_modules package-lock.json && npm install --production && rm -rf package-lock.json",
         "build-dist": "npx pkg --compress Brotli package.json && rm -rf package-lock.json && npm install",
         "build-dist-fast": "npx pkg --debug  package.json && rm -rf package-lock.json && npm install",
@@ -26,12 +27,12 @@
         "pubface": "bin/pubface.js"
     },
     "dependencies": {
-        "ipaddr.js": "2.2.0",
-        "nodemailer": "7.0.9"
+        "ipaddr.js": "2.3.0",
+        "nodemailer": "7.0.11"
     },
     "devDependencies": {
         "pkg": "5.8.1",
-        "license-report": "6.8.0"
+        "license-report": "6.8.1"
     },
     "pkg": {
         "assets": [
