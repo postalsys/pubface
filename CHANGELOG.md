@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.16](https://github.com/postalsys/pubface/compare/v1.0.15...v1.0.16) (2025-12-11)
+
+
+### Bug Fixes
+
+* trigger release ([f3ebea9](https://github.com/postalsys/pubface/commit/f3ebea90c7f39ca5984fcef252ccd5feb8ac6ac6))
+
 ## [1.0.15](https://github.com/postalsys/pubface/compare/v1.0.14...v1.0.15) (2025-12-11)
 
 
