@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.17](https://github.com/postalsys/pubface/compare/v1.0.16...v1.0.17) (2025-12-11)
+
+
+### Bug Fixes
+
+* update node version to 24 in release workflow ([45778c3](https://github.com/postalsys/pubface/commit/45778c321b40878579a43dc594695e16704390ec))
+
 ## [1.0.16](https://github.com/postalsys/pubface/compare/v1.0.15...v1.0.16) (2025-12-11)
 
 
