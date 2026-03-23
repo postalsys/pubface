@@ -28,11 +28,11 @@
     },
     "dependencies": {
         "ipaddr.js": "2.3.0",
-        "nodemailer": "7.0.13"
+        "nodemailer": "8.0.3"
     },
     "devDependencies": {
         "pkg": "5.8.1",
-        "license-report": "6.8.1"
+        "license-report": "6.8.2"
     },
     "pkg": {
         "assets": [
