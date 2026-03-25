@@ -11,6 +11,7 @@ const RESOLV_URL = process.env.RESOLV_URL || 'https://api.nodemailer.com/';
 const RESOLV_TIMEOUT = Number(process.env.RESOLV_TIMEOUT) || 5;
 
 const RESOLV_TIMEOUT_SEC = RESOLV_TIMEOUT * 1000;
+const DNS_TTL = 10 * 60 * 1000;
 const DNS_CACHE = {};
 
 function getPtrAddr(address) {
@@ -33,7 +34,7 @@ function getPtrAddr(address) {
 
 async function resolvePtr(address) {
     let ptrAddress = getPtrAddr(address);
-    return await dns.resolvePtr(ptrAddress);
+    return dns.resolvePtr(ptrAddress);
 }
 
 async function updateDns() {
@@ -44,7 +45,7 @@ async function updateDns() {
         DNS_CACHE.AAAA = false;
         DNS_CACHE.A = {
             host: url.hostname,
-            expires: new Date(Date.now() + 10 * 60 * 1000)
+            expires: new Date(Date.now() + DNS_TTL)
         };
         return;
     }
@@ -53,7 +54,7 @@ async function updateDns() {
         DNS_CACHE.A = false;
         DNS_CACHE.AAAA = {
             host: url.hostname,
-            expires: new Date(Date.now() + 10 * 60 * 1000)
+            expires: new Date(Date.now() + DNS_TTL)
         };
         return;
     }
@@ -67,7 +68,7 @@ async function updateDns() {
             if (results && results.length) {
                 DNS_CACHE.A = {
                     host: results[0],
-                    expires: new Date(Date.now() + 10 * 60 * 1000)
+                    expires: new Date(Date.now() + DNS_TTL)
                 };
             }
         } catch (err) {
@@ -84,7 +85,7 @@ async function updateDns() {
             if (results && results.length) {
                 DNS_CACHE.AAAA = {
                     host: results[0],
-                    expires: new Date(Date.now() + 10 * 60 * 1000)
+                    expires: new Date(Date.now() + DNS_TTL)
                 };
             }
         } catch (err) {
@@ -99,23 +100,23 @@ async function updateDns() {
 function getPublicInterfaces() {
     let interfaces = os.networkInterfaces();
     let publicInterfaces = { IPv4: [], IPv6: [] };
-    Object.keys(interfaces)
-        .flatMap(iface => interfaces[iface].filter(entry => !entry.internal).map(entry => Object.assign({ iface }, entry)))
-        .forEach(originalEntry => {
-            let entry = Object.assign({}, originalEntry);
 
+    for (let [name, entries] of Object.entries(interfaces)) {
+        for (let entry of entries) {
+            if (entry.internal) {
+                continue;
+            }
             let family = typeof entry.family === 'number' ? `IPv${entry.family}` : entry.family;
-            if (entry.family !== family) {
-                entry.family = family;
-            }
             if (Array.isArray(publicInterfaces[family])) {
-                publicInterfaces[family].push(entry);
+                publicInterfaces[family].push({ ...entry, iface: name, family });
             }
-        });
+        }
+    }
+
     return publicInterfaces;
 }
 
-async function timedFunction(prom, timeout, localAddress) {
+function timedFunction(prom, timeout, localAddress) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             let err = new Error('Resolving requested resource timed out');
@@ -129,13 +130,14 @@ async function timedFunction(prom, timeout, localAddress) {
 }
 
 async function resolveIP(localAddress, family) {
+    let resolvHostname = new URL(RESOLV_URL).hostname;
     let data = await new Promise((resolve, reject) => {
         let req = fetchUrl(RESOLV_URL, {
             userAgent: `${packageData.name}/${packageData.version}`,
             tls: {
                 host: DNS_CACHE[family] && DNS_CACHE[family].host,
-                servername: new URL(RESOLV_URL).hostname,
-                hostname: new URL(RESOLV_URL).hostname,
+                servername: resolvHostname,
+                hostname: resolvHostname,
                 rejectUnauthorized: false,
                 localAddress
             }
@@ -149,9 +151,7 @@ async function resolveIP(localAddress, family) {
             }
         });
 
-        req.on('error', err => {
-            reject(err);
-        });
+        req.on('error', reject);
 
         req.on('end', () => {
             try {
@@ -172,39 +172,41 @@ async function resolveIP(localAddress, family) {
         if (name && name.length) {
             data.name = name[0];
         }
-    } catch (err) {
+    } catch (_err) {
         // can ignore this
     }
 
-    return Object.assign({ localAddress }, data);
+    return { localAddress, ...data };
 }
 
 async function resolvePublicInterfaces() {
     let interfaces = getPublicInterfaces();
     let promises = [];
 
-    // update resolver IP4/6 addresses
     await updateDns();
 
     if (DNS_CACHE.A && DNS_CACHE.A.host) {
-        // default
         promises.push(timedFunction(resolveIP(false, 'A'), RESOLV_TIMEOUT_SEC, false));
-        interfaces.IPv4.forEach(iface => {
+        for (let iface of interfaces.IPv4) {
             promises.push(timedFunction(resolveIP(iface.address, 'A'), RESOLV_TIMEOUT_SEC, iface.address));
-        });
+        }
     }
 
     if (DNS_CACHE.AAAA && DNS_CACHE.AAAA.host) {
         promises.push(timedFunction(resolveIP(false, 'AAAA'), RESOLV_TIMEOUT_SEC, false));
-        interfaces.IPv6.forEach(iface => {
+        for (let iface of interfaces.IPv6) {
             promises.push(timedFunction(resolveIP(iface.address, 'AAAA'), RESOLV_TIMEOUT_SEC, iface.address));
-        });
+        }
     }
 
     let defaults = {};
     let results = (await Promise.allSettled(promises))
         .filter(entry => entry.status === 'fulfilled')
-        .map(entry => Object.assign(entry.value, { family: net.isIPv6(entry.value.ip || entry.value.localAddress) ? 'IPv6' : 'IPv4' }))
+        .map(entry => {
+            let value = entry.value;
+            value.family = net.isIPv6(value.ip || value.localAddress) ? 'IPv6' : 'IPv4';
+            return value;
+        })
         .filter(entry => {
             if (!entry.localAddress) {
                 defaults[entry.family] = entry;
@@ -213,22 +215,24 @@ async function resolvePublicInterfaces() {
             return true;
         });
 
-    results.forEach(entry => {
+    for (let entry of results) {
         if (defaults[entry.family] && defaults[entry.family].ip === entry.ip) {
             entry.defaultInterface = true;
             defaults[entry.family] = false;
         }
-    });
+    }
 
     if (defaults.IPv4) {
-        results.push(Object.assign(defaults.IPv4, { defaultInterface: true }));
+        defaults.IPv4.defaultInterface = true;
+        results.push(defaults.IPv4);
     }
 
     if (defaults.IPv6) {
-        results.push(Object.assign(defaults.IPv6, { defaultInterface: true }));
+        defaults.IPv6.defaultInterface = true;
+        results.push(defaults.IPv6);
     }
 
-    results = results.sort((a, b) => {
+    results.sort((a, b) => {
         if (a.family !== b.family) {
             return a.family.localeCompare(b.family);
         }
@@ -245,3 +249,6 @@ async function resolvePublicInterfaces() {
 }
 
 module.exports = { resolvePublicInterfaces };
+
+// exported for testing
+module.exports._internal = { getPtrAddr, getPublicInterfaces, timedFunction, resolvePtr, updateDns, resolveIP, DNS_CACHE, RESOLV_TIMEOUT_SEC };
