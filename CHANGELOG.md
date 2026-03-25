@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/postalsys/pubface/compare/v1.0.19...v1.1.0) (2026-03-25)
+
+
+### Features
+
+* add test suite, eslint, and CI workflow ([c0baf91](https://github.com/postalsys/pubface/commit/c0baf91b6b50339026c8808e5f7da65ff89d6678))
+
+
+### Bug Fixes
+
+* require Node 22+ for test CI workflow ([0df3095](https://github.com/postalsys/pubface/commit/0df3095808bb56dcdb932b69d86f48b43428ae4a))
+
 ## [1.0.19](https://github.com/postalsys/pubface/compare/v1.0.18...v1.0.19) (2026-03-23)
 
 
