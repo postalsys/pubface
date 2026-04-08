@@ -29,11 +29,11 @@
     },
     "dependencies": {
         "ipaddr.js": "2.3.0",
-        "nodemailer": "8.0.4"
+        "nodemailer": "8.0.5"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
-        "eslint": "^10.1.0",
+        "eslint": "^10.2.0",
         "license-report": "6.8.2",
         "pkg": "5.8.1",
         "prettier": "^3.8.1"
