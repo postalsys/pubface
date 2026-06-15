@@ -7,16 +7,27 @@ on:
             - master
 
 name: test
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     test:
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         strategy:
             matrix:
                 node-version: [22, 24]
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
+                  cache: npm
             - run: npm ci
+            - run: npm run lint
             - run: npm test
