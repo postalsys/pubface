@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/postalsys/pubface/compare/v1.1.2...v1.1.3) (2026-06-15)
+
+
+### Bug Fixes
+
+* update dependencies ([6950a03](https://github.com/postalsys/pubface/commit/6950a03f4e4c3995367ed409fdafb5d4a2aa1753))
+
 ## [1.1.2](https://github.com/postalsys/pubface/compare/v1.1.1...v1.1.2) (2026-05-29)
 
 
