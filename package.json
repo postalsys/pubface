@@ -29,14 +29,14 @@
     },
     "dependencies": {
         "ipaddr.js": "2.4.0",
-        "nodemailer": "9.0.1"
+        "nodemailer": "9.0.3"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
-        "@yao-pkg/pkg": "6.20.0",
-        "eslint": "^10.5.0",
+        "@yao-pkg/pkg": "6.21.0",
+        "eslint": "^10.6.0",
         "license-report": "6.8.5",
-        "prettier": "^3.8.4"
+        "prettier": "^3.9.4"
     },
     "pkg": {
         "assets": [
