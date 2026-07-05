@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/postalsys/pubface/compare/v1.1.4...v1.1.5) (2026-07-05)
+
+
+### Bug Fixes
+
+* update dependencies (nodemailer 9.0.3) ([0621e11](https://github.com/postalsys/pubface/commit/0621e11fd935d6223d27b1efd20e70513d0a1d84))
+
 ## [1.1.4](https://github.com/postalsys/pubface/compare/v1.1.3...v1.1.4) (2026-06-19)
 
 
