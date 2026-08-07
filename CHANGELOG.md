@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/postalsys/pubface/compare/v1.1.5...v1.1.6) (2026-08-07)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies (nodemailer 9.0.5, ipaddr.js 2.5.0) ([c1a324e](https://github.com/postalsys/pubface/commit/c1a324ed67fc3779716c7c09c4fd66f1812d4ffd))
+
 ## [1.1.5](https://github.com/postalsys/pubface/compare/v1.1.4...v1.1.5) (2026-07-05)
 
 
