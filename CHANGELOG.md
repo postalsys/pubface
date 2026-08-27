@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/postalsys/pubface/compare/v1.1.6...v1.1.7) (2026-08-27)
+
+
+### Bug Fixes
+
+* **deps:** update nodemailer to 9.0.6 ([dca950b](https://github.com/postalsys/pubface/commit/dca950b858221f9d29754db6836b140f95226cd1))
+
 ## [1.1.6](https://github.com/postalsys/pubface/compare/v1.1.5...v1.1.6) (2026-08-07)
 
 
