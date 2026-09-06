@@ -50,5 +50,8 @@
             "node24-win-x64"
         ],
         "outputPath": "ee-dist"
+    },
+    "engines": {
+        "node": ">=20.0.0"
     }
 }
