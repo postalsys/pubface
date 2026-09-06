@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.11](https://github.com/postalsys/pubface/compare/v1.1.10...v1.1.11) (2026-09-06)
+
+
+### Bug Fixes
+
+* declare the Node 20 floor this package already has ([a8e059b](https://github.com/postalsys/pubface/commit/a8e059b4c837be23df506f7936a59176698c903d))
+
 ## [1.1.10](https://github.com/postalsys/pubface/compare/v1.1.9...v1.1.10) (2026-09-06)
 
 
