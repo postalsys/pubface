@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.10](https://github.com/postalsys/pubface/compare/v1.1.9...v1.1.10) (2026-09-06)
+
+
+### Bug Fixes
+
+* **deps:** move to nodemailer 10 ([28aadb7](https://github.com/postalsys/pubface/commit/28aadb7ef774f296e5af1b2064b1d5c25157655a))
+
 ## [1.1.9](https://github.com/postalsys/pubface/compare/v1.1.8...v1.1.9) (2026-09-01)
 
 
