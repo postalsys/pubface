@@ -1,6 +1,7 @@
 'use strict';
 
-const fetchUrl = require('nodemailer/lib/fetch');
+const http = require('http');
+const https = require('https');
 const packageData = require('./package.json');
 const dns = require('dns').promises;
 const os = require('os');
@@ -12,6 +13,8 @@ const RESOLV_TIMEOUT = Number(process.env.RESOLV_TIMEOUT) || 5;
 
 const RESOLV_TIMEOUT_SEC = RESOLV_TIMEOUT * 1000;
 const DNS_TTL = 10 * 60 * 1000;
+// The resolver answers with a tiny JSON document, anything larger is not a valid response
+const MAX_RESPONSE_SIZE = 8 * 1024;
 const DNS_CACHE = {};
 
 function getPtrAddr(address) {
@@ -59,8 +62,8 @@ async function updateDns() {
         return;
     }
 
-    let shouldCheckIPv4 = !DNS_CACHE.A || !DNS_CACHE.A.expires || !DNS_CACHE.A.expires < now;
-    let shouldCheckIPv6 = !DNS_CACHE.AAAA || !DNS_CACHE.AAAA.expires || !DNS_CACHE.AAAA.expires < now;
+    let shouldCheckIPv4 = !DNS_CACHE.A || !DNS_CACHE.A.expires || DNS_CACHE.A.expires < now;
+    let shouldCheckIPv6 = !DNS_CACHE.AAAA || !DNS_CACHE.AAAA.expires || DNS_CACHE.AAAA.expires < now;
 
     if (shouldCheckIPv4) {
         try {
@@ -118,84 +121,175 @@ function getPublicInterfaces() {
 
 function timedFunction(prom, timeout, localAddress) {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
+        let timer = setTimeout(() => {
             let err = new Error('Resolving requested resource timed out');
             if (localAddress) {
                 err._source = localAddress;
             }
             reject(err);
-        }, timeout).unref();
-        prom.then(resolve).catch(reject);
+        }, timeout);
+        timer.unref();
+        prom.then(resolve, reject).finally(() => clearTimeout(timer));
     });
 }
 
-async function resolveIP(localAddress, family) {
-    let resolvHostname = new URL(RESOLV_URL).hostname;
-    let data = await new Promise((resolve, reject) => {
-        let req = fetchUrl(RESOLV_URL, {
-            userAgent: `${packageData.name}/${packageData.version}`,
-            tls: {
-                host: DNS_CACHE[family] && DNS_CACHE[family].host,
-                servername: resolvHostname,
-                hostname: resolvHostname,
-                rejectUnauthorized: false,
-                localAddress
+/**
+ * Asks the resolver service which public IP address a request from `localAddress` arrives from.
+ *
+ * The request is made with node:https directly so that the local address and the pinned resolver
+ * IP actually reach the socket (nodemailer's fetch dropped both, so every interface was resolved
+ * through the default route). The certificate is verified against the resolver's hostname.
+ *
+ * @param {string|false} localAddress Local address to bind to, false for the default route
+ * @param {'A'|'AAAA'} family Which DNS_CACHE entry holds the resolver IP to connect to
+ * @param {Object} options `timeout` in ms (required), test hooks `url` and `ca`
+ */
+function fetchPublicIP(localAddress, family, options) {
+    let url = new URL(options.url || RESOLV_URL);
+    let hostname = url.hostname.replace(/^\[|\]$/g, '');
+    let pinnedHost = (DNS_CACHE[family] && DNS_CACHE[family].host) || hostname;
+    let client = url.protocol === 'http:' ? http : https;
+
+    let requestOptions = {
+        host: pinnedHost,
+        port: url.port || undefined,
+        path: url.pathname + url.search,
+        family: family === 'AAAA' ? 6 : 4,
+        // a whole-request deadline, so a slow trickle cannot keep it open either
+        signal: AbortSignal.timeout(options.timeout),
+        agent: false,
+        headers: {
+            // the connection goes to a pinned IP, so name the real host explicitly
+            Host: url.host,
+            'User-Agent': `${packageData.name}/${packageData.version}`,
+            Accept: 'application/json'
+        },
+        rejectUnauthorized: true
+    };
+    if (localAddress) {
+        requestOptions.localAddress = localAddress;
+    }
+    if (client === https && !net.isIP(hostname)) {
+        // SNI and certificate verification use the hostname, not the pinned IP
+        requestOptions.servername = hostname;
+    }
+    if (options.ca) {
+        requestOptions.ca = options.ca;
+    }
+
+    return new Promise((resolve, reject) => {
+        let req = client.request(requestOptions);
+
+        // A promise settles once, and a destroyed request emits no further 'end'
+        let fail = err => {
+            if (err.name === 'AbortError') {
+                err = new Error('Resolving requested resource timed out');
             }
-        });
-
-        let buf = [];
-        req.on('readable', () => {
-            let chunk;
-            while ((chunk = req.read()) !== null) {
-                buf.push(chunk);
+            if (localAddress && !err._source) {
+                err._source = localAddress;
             }
-        });
+            reject(err);
+            req.destroy();
+        };
 
-        req.on('error', reject);
+        req.on('error', fail);
 
-        req.on('end', () => {
-            try {
-                let data = JSON.parse(Buffer.concat(buf).toString());
+        req.on('response', res => {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+                res.resume();
+                return fail(new Error(`Invalid status code ${res.statusCode} from IP server`));
+            }
+
+            let chunks = [];
+            let size = 0;
+            res.on('data', chunk => {
+                size += chunk.length;
+                if (size > MAX_RESPONSE_SIZE) {
+                    return fail(new Error('Response from IP server is too large'));
+                }
+                chunks.push(chunk);
+            });
+            res.on('error', fail);
+            res.on('end', () => {
+                let data;
+                try {
+                    data = JSON.parse(Buffer.concat(chunks).toString());
+                } catch (err) {
+                    return fail(err);
+                }
                 resolve(data);
-            } catch (err) {
-                reject(err);
-            }
+            });
         });
-    });
 
-    if (!data || !data.ip) {
+        req.end();
+    });
+}
+
+/**
+ * @param {string|false} localAddress Local address to bind to, false for the default route
+ * @param {'A'|'AAAA'} family Which DNS_CACHE entry holds the resolver IP to connect to
+ * @param {Object} [options] `ptrCache` (Map of ip to PTR lookup promise, shared between the
+ *   interfaces of one resolvePublicInterfaces() call), test hooks `url`, `timeout`, `ca`
+ */
+async function resolveIP(localAddress, family, options = {}) {
+    let timeout = options.timeout || RESOLV_TIMEOUT_SEC;
+    // one deadline covers both the request and the PTR lookup
+    let deadline = Date.now() + timeout;
+
+    let data = await fetchPublicIP(localAddress, family, { ...options, timeout });
+
+    // Only a well-formed address is taken from the response, nothing else it may carry
+    let ip = data && typeof data.ip === 'string' && net.isIP(data.ip) ? data.ip : null;
+    if (!ip) {
         throw new Error('No response from IP server');
     }
 
+    let result = { localAddress, ip };
+
+    let remaining = deadline - Date.now();
+    if (remaining <= 0) {
+        return result;
+    }
+
     try {
-        let name = await resolvePtr(data.ip);
+        let lookup = options.ptrCache && options.ptrCache.get(ip);
+        if (!lookup) {
+            lookup = resolvePtr(ip);
+            if (options.ptrCache) {
+                options.ptrCache.set(ip, lookup);
+            }
+        }
+        // A hung DNS query cannot be aborted, so stop waiting for it instead
+        let name = await timedFunction(lookup, remaining);
         if (name && name.length) {
-            data.name = name[0];
+            result.name = name[0];
         }
     } catch (_err) {
         // can ignore this
     }
 
-    return { localAddress, ...data };
+    return result;
 }
 
 async function resolvePublicInterfaces() {
     let interfaces = getPublicInterfaces();
     let promises = [];
+    // interfaces behind the same NAT share a public IP, so they share its PTR lookup
+    let options = { ptrCache: new Map() };
 
     await updateDns();
 
     if (DNS_CACHE.A && DNS_CACHE.A.host) {
-        promises.push(timedFunction(resolveIP(false, 'A'), RESOLV_TIMEOUT_SEC, false));
+        promises.push(resolveIP(false, 'A', options));
         for (let iface of interfaces.IPv4) {
-            promises.push(timedFunction(resolveIP(iface.address, 'A'), RESOLV_TIMEOUT_SEC, iface.address));
+            promises.push(resolveIP(iface.address, 'A', options));
         }
     }
 
     if (DNS_CACHE.AAAA && DNS_CACHE.AAAA.host) {
-        promises.push(timedFunction(resolveIP(false, 'AAAA'), RESOLV_TIMEOUT_SEC, false));
+        promises.push(resolveIP(false, 'AAAA', options));
         for (let iface of interfaces.IPv6) {
-            promises.push(timedFunction(resolveIP(iface.address, 'AAAA'), RESOLV_TIMEOUT_SEC, iface.address));
+            promises.push(resolveIP(iface.address, 'AAAA', options));
         }
     }
 
@@ -251,4 +345,14 @@ async function resolvePublicInterfaces() {
 module.exports = { resolvePublicInterfaces };
 
 // exported for testing
-module.exports._internal = { getPtrAddr, getPublicInterfaces, timedFunction, resolvePtr, updateDns, resolveIP, DNS_CACHE, RESOLV_TIMEOUT_SEC };
+module.exports._internal = {
+    getPtrAddr,
+    getPublicInterfaces,
+    timedFunction,
+    resolvePtr,
+    updateDns,
+    resolveIP,
+    DNS_CACHE,
+    RESOLV_TIMEOUT_SEC,
+    MAX_RESPONSE_SIZE
+};

@@ -21,7 +21,8 @@ export default [
                 Buffer: 'readonly',
                 setTimeout: 'readonly',
                 clearTimeout: 'readonly',
-                URL: 'readonly'
+                URL: 'readonly',
+                AbortSignal: 'readonly'
             }
         },
         rules: {

@@ -31,8 +31,9 @@ pubface is a dependency of EmailEngine (`../emailengine`).
 ## Technology Stack
 
 - **Runtime**: Node.js (CommonJS, no build step for the library itself)
-- **Dependencies**: `ipaddr.js` (IP parsing), `nodemailer` (the `nodemailer/lib/fetch`
-  helper is used for the bound outbound HTTPS request)
+- **Dependencies**: `ipaddr.js` (IP parsing). The bound outbound HTTPS request uses
+  `node:https` directly, so `localAddress` and the pinned resolver IP reach the socket
+  and the certificate is verified against the resolver hostname.
 - **License**: MIT No Attribution (MIT-0)
 
 ## Development Commands
