@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.18](https://github.com/postalsys/pubface/compare/v1.1.17...v1.1.18) (2026-09-28)
+
+
+### Bug Fixes
+
+* bind the lookup to the interface, verify the resolver certificate, and bound each lookup by one deadline ([5deb2ea](https://github.com/postalsys/pubface/commit/5deb2eaedd0ccbf2761c75b354c1f8d002910d69))
+
 ## [1.1.17](https://github.com/postalsys/pubface/compare/v1.1.16...v1.1.17) (2026-09-27)
 
 
