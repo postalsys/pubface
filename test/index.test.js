@@ -314,9 +314,7 @@ describe('resolvePtr', () => {
     });
 
     it('should return multiple PTR records', async () => {
-        mock.method(dns.promises, 'resolvePtr', async () => {
-            return ['a.example.com', 'b.example.com'];
-        });
+        mock.method(dns.promises, 'resolvePtr', async () => ['a.example.com', 'b.example.com']);
 
         const result = await resolvePtr('1.2.3.4');
         assert.equal(result.length, 2);

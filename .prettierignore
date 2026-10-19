@@ -1,1 +1,7 @@
+node_modules
+coverage
+dist
+ee-dist
+package-lock.json
 CHANGELOG.md
+licenses.txt

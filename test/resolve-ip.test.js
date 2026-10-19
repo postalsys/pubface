@@ -141,6 +141,8 @@ describe('resolveIP', () => {
 
         for (let body of [{ ip: 'mail.example.com' }, { ip: '1.2.3.4 evil' }, { ip: ['1.2.3.4'] }, {}, 'null']) {
             handler = json(body);
+            // sequential on purpose: each iteration swaps the shared server handler
+            // eslint-disable-next-line no-await-in-loop
             await assert.rejects(() => resolveIP(false, 'A', { url: url(), ca }), { message: 'No response from IP server' });
         }
     });

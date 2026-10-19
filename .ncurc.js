@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
     upgrade: true,
     // pubface is bundled into standalone binaries with @yao-pkg/pkg, which only
