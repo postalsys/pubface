@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-'use strict';
+import { resolvePublicInterfaces } from './index.js';
 
-const { resolvePublicInterfaces } = require('../index.js');
 resolvePublicInterfaces()
     .then(results => {
-        console.log(JSON.stringify(results, false, 2));
+        console.log(JSON.stringify(results, null, 2));
         process.exit(0);
     })
     .catch(err => {

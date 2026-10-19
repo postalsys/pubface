@@ -30,7 +30,26 @@ jobs:
             - run: npm run lint
             - run: npm run format:check
             - run: npm test
+              if: matrix.node != '24.x'
+            # One matrix entry runs the suite under c8, which enforces the thresholds in .c8rc.json
+            - run: npm run test:coverage
+              if: matrix.node == '24.x'
             # Node 22+ loads ES modules through require() by default, which would hide an ESM-only
-            # dependency. Run the suite again with that turned off, as a pkg binary would load it.
+            # dependency. Run the CommonJS build again with that turned off, as a pkg binary loads it.
             - run: npm run test:cjs
               if: matrix.node != '20.x'
+
+    # Builds a @yao-pkg/pkg binary of the CLI and runs it, the way the released binaries and
+    # EmailEngine's bundle the CommonJS build
+    pkg:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24.x
+                  cache: npm
+            - run: npm ci
+            - run: npm run test:pkg

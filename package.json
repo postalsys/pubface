@@ -2,18 +2,45 @@
     "name": "pubface",
     "version": "1.1.18",
     "description": "Resolve public network interfaces for current machine",
-    "main": "index.js",
+    "type": "module",
+    "main": "./dist/cjs/index.js",
+    "types": "./dist/cjs/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "CHANGELOG.md",
+        "SECURITY.md",
+        "SECURITY.txt"
+    ],
+    "bin": {
+        "pubface": "dist/cjs/cli.js"
+    },
     "scripts": {
-        "test": "node --test test/*.test.js",
-        "test:cjs": "NODE_OPTIONS=--no-experimental-require-module npm test",
-        "test:coverage": "c8 npm test",
-        "lint": "eslint .",
+        "build": "node scripts/build.js",
+        "typecheck": "node scripts/build.js --generate-only && tsc -p tsconfig.json",
+        "pretest": "npm run build",
+        "test": "node --import tsx --test $(find test -name '*.test.ts')",
+        "pretest:coverage": "npm run build",
+        "test:coverage": "c8 node --import tsx --test $(find test -name '*.test.ts')",
+        "pretest:cjs": "npm run build",
+        "test:cjs": "NODE_OPTIONS=--no-experimental-require-module node test/package/cjs-smoke.cjs",
+        "pretest:pkg": "npm run build",
+        "test:pkg": "node scripts/pkg-smoke.js",
+        "test:mutation": "node scripts/mutation-test.js",
+        "lint": "npm run typecheck && eslint .",
         "lint:fix": "eslint . --fix",
-        "format": "prettier --write .",
-        "format:check": "prettier --check .",
-        "build-source": "rm -rf node_modules package-lock.json && npm install && npm run licenses && rm -rf node_modules package-lock.json && npm install --production && rm -rf package-lock.json",
+        "format": "prettier --write \"**/*.{js,cjs,ts,json,md,yml,yaml}\"",
+        "format:check": "prettier --check \"**/*.{js,cjs,ts,json,md,yml,yaml}\"",
+        "prepare": "npm run build",
+        "build-source": "rm -rf node_modules package-lock.json && npm install && npm run licenses && rm -rf node_modules package-lock.json && npm install --omit=dev --ignore-scripts && rm -rf package-lock.json",
         "build-dist": "npx pkg --compress Brotli package.json && rm -rf package-lock.json && npm install",
-        "build-dist-fast": "npx pkg --debug  package.json && rm -rf package-lock.json && npm install",
+        "build-dist-fast": "npx pkg --debug package.json && rm -rf package-lock.json && npm install",
         "licenses": "license-report --only=prod --output=table --config license-report-config.json > licenses.txt",
         "update": "rm -rf node_modules package-lock.json && ncu -u && npm install"
     },
@@ -28,21 +55,21 @@
         "url": "https://github.com/postalsys/pubface/issues"
     },
     "homepage": "https://github.com/postalsys/pubface",
-    "bin": {
-        "pubface": "bin/pubface.js"
-    },
     "dependencies": {
         "ipaddr.js": "2.5.0"
     },
     "devDependencies": {
-        "@eslint/js": "10.0.1",
-        "@yao-pkg/pkg": "6.22.0",
+        "@types/node": "20.19.43",
+        "@yao-pkg/pkg": "6.23.0",
         "c8": "12.0.0",
         "eslint": "10.13.0",
         "eslint-config-prettier": "10.1.8",
         "globals": "17.13.0",
-        "license-report": "6.8.5",
-        "prettier": "3.9.10"
+        "license-report": "6.8.6",
+        "prettier": "3.9.10",
+        "tsx": "4.23.15",
+        "typescript": "6.0.3",
+        "typescript-eslint": "8.71.2"
     },
     "pkg": {
         "assets": [

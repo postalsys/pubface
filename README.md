@@ -10,13 +10,22 @@ Install the dependency
 $ npm install pubface
 ```
 
-Use it to get an array of interfaces
+Use it to get an array of interfaces. The package ships both CommonJS and ES module builds with TypeScript type declarations.
 
 ```js
 const { resolvePublicInterfaces } = require('pubface');
+// or: import { resolvePublicInterfaces } from 'pubface';
 ...
 let interfaces = await resolvePublicInterfaces();
 console.log(interfaces);
+```
+
+The `PublicInterface` type describes one entry of the result:
+
+```ts
+import { resolvePublicInterfaces, type PublicInterface } from 'pubface';
+
+const interfaces: PublicInterface[] = await resolvePublicInterfaces();
 ```
 
 ### Usage as a command
@@ -66,6 +75,11 @@ Output is an array of interfaces:
 - **name** is the reverse record for **ip**
 - **family** is either _IPv4_ or _IPv6_ depending on the **ip**
 - **defaultInterface** is a boolean that indicates if this is the default interface used when making connections and not specifying a local address
+
+### Configuration
+
+- **RESOLV_URL** is the resolver service that reports the public IP address of a request, `https://api.nodemailer.com/` by default. It must answer with a JSON object that has an `ip` property.
+- **RESOLV_TIMEOUT** is the time limit in seconds for resolving one interface, including its reverse DNS lookup, 5 by default.
 
 ## License
 

@@ -1,0 +1,14 @@
+{
+    "clean": true,
+    "all": true,
+    "temp-directory": "./coverage/.tmp",
+    "reporter": ["text", "html"],
+    "include": ["src/**/*.ts"],
+    "exclude": ["src/package-info.ts", "src/cli.ts", "src/**/*.d.ts"],
+    "exclude-after-remap": true,
+    "check-coverage": true,
+    "lines": 100,
+    "statements": 100,
+    "branches": 100,
+    "functions": 100
+}

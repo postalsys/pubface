@@ -5,3 +5,4 @@ ee-dist
 package-lock.json
 CHANGELOG.md
 licenses.txt
+src/package-info.ts
