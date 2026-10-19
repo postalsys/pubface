@@ -25,7 +25,10 @@ pubface is a dependency of EmailEngine (`../emailengine`).
 - `bin/pubface.js` - CLI entry point (calls `resolvePublicInterfaces` and prints
   JSON).
 - `test/index.test.js` - Test suite (Node.js native test runner).
-- `eslint.config.mjs` - Flat ESLint config.
+- `eslint.config.js` - Flat ESLint config, the shared CommonJS baseline used across
+  Postal Systems packages (only the "Repo-specific" block may differ).
+- `.prettierrc.js` / `.prettierignore` - Shared Prettier config (printWidth 160,
+  tabWidth 4, single quotes).
 - `package.json` - Also holds the `pkg` build configuration (binary targets).
 
 ## Technology Stack
@@ -39,9 +42,12 @@ pubface is a dependency of EmailEngine (`../emailengine`).
 ## Development Commands
 
 ```
-npm test           # Run the test suite (node --test 'test/**/*.test.js')
-npm run lint       # Lint with ESLint
-npm run format     # Format code with Prettier
+npm test               # Run the test suite (node --test test/*.test.js)
+npm run test:coverage  # Run the suite under c8 coverage
+npm run lint           # Lint with ESLint
+npm run lint:fix       # Lint and apply autofixes
+npm run format         # Format code with Prettier
+npm run format:check   # Check formatting without writing (CI runs this)
 npm run update     # Refresh dependencies (see Dependency Management)
 npm run licenses   # Regenerate licenses.txt from production dependencies
 npm run build-source   # Reinstall production-only deps for a binary build
@@ -52,7 +58,12 @@ npm run build-dist-fast  # Build binaries without compression (faster, for debug
 ## Testing
 
 - Uses the Node.js native test runner (`node:test`) with `node:assert/strict`.
-- Tests live in `test/` and are matched by the `test/**/*.test.js` glob.
+- Tests live in `test/` and are matched by the `test/*.test.js` shell glob (a
+  shell glob rather than a quoted one, because Node 20 does not expand test
+  globs itself). Run a single file with `node --test test/resolve-ip.test.js`,
+  or a single test by name with `node --test --test-name-pattern="<name>" test/*.test.js`.
+- CI (`.github/workflows/test.yaml`) runs lint, format:check and the tests on
+  Node 20, 22 and 24.
 - Tests are hermetic: network, DNS, and `os.networkInterfaces()` are mocked via
   `node:test` mocks, so no live network access is required. Keep them that way -
   new tests must not depend on real DNS or the live resolver service.
@@ -120,7 +131,7 @@ CommonJS entry point.
 
 ## After Making Code Changes
 
-1. Run `npm run format` and `npm run lint`.
+1. Run `npm run format` and `npm run lint` (CI also runs `npm run format:check`).
 2. Run `npm test` and make sure the suite passes.
 3. Consider `/simplify` to review changed code and `/security-review` to check
    for security issues before committing.
