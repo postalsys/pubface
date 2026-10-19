@@ -43,6 +43,7 @@ pubface is a dependency of EmailEngine (`../emailengine`).
 
 ```
 npm test               # Run the test suite (node --test test/*.test.js)
+npm run test:cjs       # The suite with require(esm) disabled (see Platform constraints)
 npm run test:coverage  # Run the suite under c8 coverage
 npm run lint           # Lint with ESLint
 npm run lint:fix       # Lint and apply autofixes
@@ -63,7 +64,7 @@ npm run build-dist-fast  # Build binaries without compression (faster, for debug
   globs itself). Run a single file with `node --test test/resolve-ip.test.js`,
   or a single test by name with `node --test --test-name-pattern="<name>" test/*.test.js`.
 - CI (`.github/workflows/test.yaml`) runs lint, format:check and the tests on
-  Node 20, 22 and 24.
+  Node 20, 22 and 24, plus `npm run test:cjs` on Node 22 and 24.
 - Tests are hermetic: network, DNS, and `os.networkInterfaces()` are mocked via
   `node:test` mocks, so no live network access is required. Keep them that way -
   new tests must not depend on real DNS or the live resolver service.
@@ -78,12 +79,31 @@ unmaintained `vercel/pkg`). The build configuration and target list live under
 the `pkg` key in `package.json`; binaries target Node 24 for Linux x64, macOS
 x64, macOS arm64, and Windows x64 and are written to `ee-dist/`.
 
-**`@yao-pkg/pkg` only supports CommonJS.** Every runtime dependency - and the
-project's own code - must be requireable as CommonJS. Do not add pure-ESM
-dependencies (packages that ship only an ESM entry point with no CommonJS
-fallback); they break the binary build even when they work fine under plain
-`node`. When evaluating or upgrading a dependency, confirm it still exposes a
-CommonJS entry point.
+**`@yao-pkg/pkg` only supports CommonJS**, both for these binaries and for
+EmailEngine's, which bundles pubface as a dependency. See Platform constraints.
+
+## Platform constraints
+
+pubface reaches runtime inside two `@yao-pkg/pkg` binaries: its own CLI builds
+and EmailEngine's. pkg snapshots a CommonJS module graph and cannot load ES
+modules, and EmailEngine's DigitalOcean one-click images update EmailEngine but
+never the Node.js under it. Two rules follow:
+
+- **Node.js 20 is the minimum.** Code, tests and tooling must work on Node 20, 22
+  and 24 (`engines.node` is `>=20.0.0`). The binaries embed Node 24, but the npm
+  package runs on whatever Node the consumer has.
+- **Everything that reaches runtime must be genuinely CommonJS-loadable.** The
+  project's own code and every runtime dependency must load through `require()`
+  with `--no-experimental-require-module`. A CommonJS entry that only wraps a
+  dynamic `import()` of ESM code does not count. A pure-ESM dependency breaks the
+  binary even though plain `node` runs it: Node 22+ (and 20.19) load ES modules
+  through `require()` by default, which hides the problem.
+- **How to check:** `npm run test:cjs` runs the suite with
+  `NODE_OPTIONS=--no-experimental-require-module`; CI runs it on Node 22 and 24.
+  Run it after any dependency change.
+- **Pinning:** never add or upgrade to an ESM-only dependency. Add the package to
+  `.ncurc.js` (`reject`, or a `target` that keeps the last CommonJS major) with a
+  comment giving the reason.
 
 ## Dependency Management
 
@@ -94,9 +114,10 @@ CommonJS entry point.
   whose newer releases are pure ESM (or otherwise break the `@yao-pkg/pkg` build
   or our supported Node range) to its `reject` list, with a comment explaining
   why, so it stays pinned to its last compatible release.
-- After updating dependencies, run `npm run lint` and `npm test`, and remember
-  that production dependency changes are user-facing - commit them with a `fix:`
-  prefix so a release is cut (see Commit Conventions).
+- After updating dependencies, run `npm run lint`, `npm test` and
+  `npm run test:cjs`, and remember that production dependency changes are
+  user-facing - commit them with a `fix:` prefix so a release is cut (see Commit
+  Conventions).
 
 ## Releases
 
