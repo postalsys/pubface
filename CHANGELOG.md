@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/postalsys/pubface/compare/v1.1.18...v1.2.0) (2026-10-19)
+
+
+### Features
+
+* migrate to TypeScript with ES module and CommonJS builds ([d3eb9ca](https://github.com/postalsys/pubface/commit/d3eb9ca8ea1186f390a81062b249273605e68608))
+
 ## [1.1.18](https://github.com/postalsys/pubface/compare/v1.1.17...v1.1.18) (2026-09-28)
 
 
