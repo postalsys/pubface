@@ -1,6 +1,6 @@
 {
     "name": "pubface",
-    "version": "1.1.18",
+    "version": "1.2.0",
     "description": "Resolve public network interfaces for current machine",
     "type": "module",
     "main": "./dist/cjs/index.js",
