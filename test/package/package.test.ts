@@ -52,10 +52,22 @@ describe('Built package', { timeout: 120 * 1000, skip: hasDist ? false : 'dist/ 
     });
 
     it('packs the build and leaves the sources and tests out', () => {
-        // --ignore-scripts: prepare would rebuild dist/ under the running suite
-        const result = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' });
-        assert.equal(result.status, 0, result.stderr);
-        const files: string[] = JSON.parse(result.stdout)[0].files.map((file: { path: string }) => file.path);
+        // Packs a copy without the lifecycle scripts: prepare would rebuild dist/ (removing it
+        // first) under the test files running in parallel, and npm 10 (Node 20 and 22) runs it
+        // on pack even with --ignore-scripts. coverage/ is left out because c8 writes there
+        // while the suite runs, ee-dist/ because it holds the binaries.
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pubface-pack-'));
+        let files: string[];
+        try {
+            fs.cpSync(root, dir, { recursive: true, filter: source => !/^(node_modules|\.git|coverage|ee-dist)$/.test(path.relative(root, source)) });
+            const { scripts: _scripts, ...manifest } = pkg;
+            fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(manifest, null, 4));
+            const result = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: dir, encoding: 'utf8' });
+            assert.equal(result.status, 0, result.stderr);
+            files = JSON.parse(result.stdout)[0].files.map((file: { path: string }) => file.path);
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
         for (const required of [
             'package.json',
             'dist/cjs/index.js',
