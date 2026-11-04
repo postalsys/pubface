@@ -64,7 +64,8 @@ describe('Built package', { timeout: 120 * 1000, skip: hasDist ? false : 'dist/ 
             fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(manifest, null, 4));
             const result = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: dir, encoding: 'utf8' });
             assert.equal(result.status, 0, result.stderr);
-            files = JSON.parse(result.stdout)[0].files.map((file: { path: string }) => file.path);
+            // npm 12 keys the report by package name, older npm returns an array
+            files = Object.values<{ files: { path: string }[] }>(JSON.parse(result.stdout))[0].files.map((file: { path: string }) => file.path);
         } finally {
             fs.rmSync(dir, { recursive: true, force: true });
         }
